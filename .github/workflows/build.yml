@@ -8,29 +8,31 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.10"
-      
+
       - name: Install dependencies
+        shell: pwsh  # Force PowerShell on Windows
         run: |
           pip install pyinstaller PyQt6
-          if [ "$RUNNER_OS" == "Windows" ]; then
+          if ($env:RUNNER_OS -eq "Windows") {
             pip install pywin32
-          fi
-      
+          }
+
       - name: Build
+        shell: pwsh
         run: |
-          if [ "$RUNNER_OS" == "Windows" ]; then
+          if ($env:RUNNER_OS -eq "Windows") {
             pyinstaller --onefile --windowed --icon src/icon.ico --add-data "src/calculatorui.ui;." --name Calculator src/calculator.py
-          else
+          } else {
             pyinstaller --onefile --windowed --icon src/icon.png --add-data "src/calculatorui.ui:." --name Calculator src/calculator.py
-          fi
-      
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4  # Changed to v4
+          }
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
         with:
           name: Calculator-${{ matrix.os }}
           path: dist/
