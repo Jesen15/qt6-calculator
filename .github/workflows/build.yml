@@ -1,38 +1,75 @@
 name: Build
 on: [push]
 jobs:
-  build:
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
+  build-windows:
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-
+      
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.10"
-
-      - name: Install dependencies
-        shell: pwsh  # Force PowerShell on Windows
+      
+      - name: Install dependencies (Windows)
         run: |
-          pip install pyinstaller PyQt6
-          if ($env:RUNNER_OS -eq "Windows") {
-            pip install pywin32
-          }
-
-      - name: Build
-        shell: pwsh
+          pip install pyinstaller PyQt6 pywin32
+      
+      - name: Build Windows EXE
         run: |
-          if ($env:RUNNER_OS -eq "Windows") {
-            pyinstaller --onefile --windowed --icon src/icon.ico --add-data "src/calculatorui.ui;." --name Calculator src/calculator.py
-          } else {
-            pyinstaller --onefile --windowed --icon src/icon.png --add-data "src/calculatorui.ui:." --name Calculator src/calculator.py
-          }
-
-      - name: Upload artifact
+          pyinstaller --onefile --windowed --icon src/icon.ico --add-data "src/calculatorui.ui;." --name Calculator src/calculator.py
+      
+      - name: Upload Windows Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: Calculator-${{ matrix.os }}
-          path: dist/
+          name: Calculator-Windows
+          path: dist/Calculator.exe
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      
+      - name: Install dependencies (Linux)
+        run: |
+          sudo apt-get update
+          pip install pyinstaller PyQt6
+      
+      - name: Build Linux Binary
+        run: |
+          pyinstaller --onefile --windowed --icon src/icon.png --add-data "src/calculatorui.ui:." --name Calculator src/calculator.py
+      
+      - name: Upload Linux Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: Calculator-Linux
+          path: dist/Calculator
+
+  build-mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      
+      - name: Install dependencies (macOS)
+        run: |
+          pip install pyinstaller PyQt6
+      
+      - name: Build Mac Binary
+        run: |
+          pyinstaller --onefile --windowed --icon src/icon.png --add-data "src/calculatorui.ui:." --name Calculator src/calculator.py
+      
+      - name: Upload Mac Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: Calculator-Mac
+          path: dist/Calculator
