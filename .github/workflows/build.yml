@@ -5,35 +5,34 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-      fail-fast: false  # Prevent one failure from canceling others
+      fail-fast: false
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-      
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
-      
+          python-version: "3.10"
+
       - name: Install dependencies
         run: |
           pip install pyinstaller PyQt6
-          if [ "$RUNNER_OS" = "Windows" ]; then
+          if [ "$RUNNER_OS" == "Windows" ]; then
             pip install pywin32
           fi
-      
-      - name: Build
+
+      - name: Build application
         run: |
-          if [ "$RUNNER_OS" = "Windows" ]; then
-            pyinstaller --onefile --windowed --icon src/icon.ico --add-data "src/calculatorui.ui;." --name Calculator-Windows src/calculator.py
-          elif [ "$RUNNER_OS" = "macOS" ]; then
-            pyinstaller --onefile --windowed --icon src/icon.png --add-data "src/calculatorui.ui:." --name Calculator-Mac src/calculator.py
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            pyinstaller --onefile --windowed --icon src/icon.ico --add-data "src/calculatorui.ui;." --name Calculator src/calculator.py
           else
-            pyinstaller --onefile --windowed --icon src/icon.png --add-data "src/calculatorui.ui:." --name Calculator-Linux src/calculator.py
+            pyinstaller --onefile --windowed --icon src/icon.png --add-data "src/calculatorui.ui:." --name Calculator src/calculator.py
           fi
-      
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v3  # Fixed version
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
         with:
           name: Calculator-${{ matrix.os }}
           path: dist/
